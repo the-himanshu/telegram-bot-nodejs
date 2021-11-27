@@ -2,6 +2,9 @@
   "name": "telegram-bot-node",
   "version": "1.0.0",
   "description": "This is a sample nodeJS based telegram app",
+  "engines": {
+    "node": "16.11.1"
+  },
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
