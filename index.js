@@ -1,6 +1,32 @@
 const express = require("express"); //Import the express dependency
+const { Telegraf } = require("telegraf");
+const { request } = require("request");
+
 const app = express(); //Instantiate an express app, the main work horse of this server
 const port = 5000; //Save the port number where your server will be listening
+
+const bot = new Telegraf("2128386396:AAGhQpUUecd9D54Z3zd3UlqkM_jeB1WTAK4");
+
+//start the bot
+bot.command("start", (ctx) => {
+  bot.telegram.sendMessage(
+    ctx.chat.id,
+    `Hello there! Welcome to my new telegram bot\nType /help to check commands`,
+    {}
+  );
+});
+
+bot.command("help", async (ctx) => {
+  const data = ctx.update.message;
+  const commands = `/start - To start the bot\n/cricket <any argument? - To call various cricket methods like /cricket live\n/news - To get a latest news article\n/fact number x - To get a random fact about any number`;
+  bot.telegram.sendMessage(
+    data.from.id,
+    `YOUR CUSTOM GREETING WAS : \n${commands}`,
+    {}
+  );
+});
+
+bot.launch();
 
 //Idiomatic expression in express to route and respond to a client request
 app.get("/", (req, res) => {
