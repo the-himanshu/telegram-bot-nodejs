@@ -9,7 +9,7 @@ app.get("/", (req, res) => {
   //the .sendFile method needs the absolute path to the file, see: https://expressjs.com/en/4x/api.html#res.sendFile
 });
 
-app.listen(port, () => {
+app.listen(process.env.PORT || 3000, () => {
   //server starts listening for any attempts from a client to connect at port: {port}
   console.log(`Now listening on port ${port}`);
 });
