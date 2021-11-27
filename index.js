@@ -1,11 +1,13 @@
 const express = require("express"); //Import the express dependency
 const request = require("request");
 const { Telegraf } = require("telegraf");
+const factful = require('factful.js')
 
 const app = express(); //Instantiate an express app, the main work horse of this server
 const port = 5000; //Save the port number where your server will be listening
 
-const bot = new Telegraf("2128386396:AAGhQpUUecd9D54Z3zd3UlqkM_jeB1WTAK4");
+//const bot = new Telegraf("2128386396:AAGhQpUUecd9D54Z3zd3UlqkM_jeB1WTAK4");
+const bot = new Telegraf("2121704253:AAEXm7sz_JrRd-3kJ-oQSI6L49g_t7jnMmU");
 
 //command start the bot
 bot.command("start", (ctx) => {
@@ -36,7 +38,7 @@ bot.command("news", async (ctx) => {
     if (err) {
       return console.log(err);
     }
-    
+
     const resultData = `${body.articles[0].title}\n\n${body.articles[0].description}`;
     const resultURL = `${body.articles[0].url}`;
 
@@ -50,6 +52,11 @@ bot.command("fact", async (ctx) => {
   const data = ctx.update.message;
   let text = data.text;
   text = text.split(" ");
+  if(!text[1]) {
+    let factData = factful.fact();
+    factData = factData.all;
+    bot.telegram.sendMessage(data.from.id, factData, {});
+  }
   if (text[1] == "number") {
     let url = `http://numbersapi.com/${text[2]}`;
     request(url, { json: true }, async (err, res, body) => {
@@ -83,7 +90,6 @@ bot.command("fact", async (ctx) => {
 //all cricket commands
 bot.command("cricket", async (ctx) => {
   const data = ctx.update.message;
-
   let text = data.text;
   text = text.split(" ");
 
@@ -150,15 +156,32 @@ bot.command("cricket", async (ctx) => {
 });
 
 bot.hears("hi", (ctx) => ctx.reply("Hey there"));
+bot.hears(/how are you/, (ctx) => ctx.reply("I am good, wbu?"));
 
-bot.hears(/bad||poor/, (ctx) => {
-  console.log(ctx.from);
+bot.hears(/bad/||/lame/, (ctx) => {
   ctx.replyWithPhoto(
     {
       url: "https://humornama.com/wp-content/uploads/2020/11/Gajab-Bejjati-Hai-Yaar-meme-template-of-Panchayat-series.jpg",
     },
     { caption: "Thanks for the feedback tho" }
   );
+});
+
+bot.hears(/meme template/, (ctx) => {
+  let url = "https://api.imgflip.com/get_memes";
+  request(url, { json: true }, async (err, res, body) => {
+    if (err) {
+      return console.log(err);
+    }
+    const randomNumber = Math.floor(Math.random());
+    const meme = body.data.memes[randomNumber%80]
+    ctx.replyWithPhoto(
+      {
+        url: meme.url,
+      },
+      { caption: meme.name }
+    );
+  });
 });
 
 bot.launch();
