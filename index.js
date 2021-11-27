@@ -1,13 +1,13 @@
 const express = require("express"); //Import the express dependency
+const request = require("request");
 const { Telegraf } = require("telegraf");
-const { request } = require("request");
 
 const app = express(); //Instantiate an express app, the main work horse of this server
 const port = 5000; //Save the port number where your server will be listening
 
 const bot = new Telegraf("2128386396:AAGhQpUUecd9D54Z3zd3UlqkM_jeB1WTAK4");
 
-//start the bot
+//command start the bot
 bot.command("start", (ctx) => {
   bot.telegram.sendMessage(
     ctx.chat.id,
@@ -16,6 +16,7 @@ bot.command("start", (ctx) => {
   );
 });
 
+//command to get help
 bot.command("help", async (ctx) => {
   const data = ctx.update.message;
   const commands = `/start - To start the bot\n/cricket <any argument? - To call various cricket methods like /cricket live\n/news - To get a latest news article\n/fact number x - To get a random fact about any number`;
@@ -26,6 +27,7 @@ bot.command("help", async (ctx) => {
   );
 });
 
+//command to get news
 bot.command("news", async (ctx) => {
   const data = ctx.update.message;
   let url =
@@ -34,16 +36,16 @@ bot.command("news", async (ctx) => {
     if (err) {
       return console.log(err);
     }
-
+    
     const resultData = `${body.articles[0].title}\n\n${body.articles[0].description}`;
     const resultURL = `${body.articles[0].url}`;
 
     bot.telegram.sendMessage(data.from.id, resultData, {});
-
     bot.telegram.sendMessage(data.from.id, resultURL, {});
   });
 });
 
+//command to get facts
 bot.command("fact", async (ctx) => {
   const data = ctx.update.message;
   let text = data.text;
@@ -76,6 +78,87 @@ bot.command("fact", async (ctx) => {
       );
     });
   }
+});
+
+//all cricket commands
+bot.command("cricket", async (ctx) => {
+  const data = ctx.update.message;
+
+  let text = data.text;
+  text = text.split(" ");
+
+  if (text[1] == "rankings") {
+    let url =
+      "https://cricket.sportmonks.com/api/v2.0/team-rankings?api_token=YHOUIAmP7LRABmIjYn9MX4PrF1YTkZbnS3z2otMuxQ4n4mzfMw3X0KgHuTMs";
+    request(url, { json: true }, async (err, res, body) => {
+      if (err) {
+        return console.log(err);
+      }
+
+      body = body.data;
+      body.forEach((format) => {
+        if (format.gender == "men") {
+          let formatResultData = "";
+          let allTeams = format.team;
+
+          for (let i = 0; i < allTeams.length; i++) {
+            formatResultData = formatResultData.concat(
+              `${allTeams[i].position} ${allTeams[i].name}\n`.toString()
+            );
+          }
+
+          bot.telegram.sendMessage(
+            data.from.id,
+            `RANKINGS FOR ${format.type} \n ${formatResultData}`,
+            {}
+          );
+        }
+      });
+    });
+  } else if (text[1] == "live" || text[1] == "livescore") {
+    var options = {
+      method: "GET",
+      url: "https://livescore6.p.rapidapi.com/matches/v2/list-live",
+      params: { Category: "cricket" },
+      headers: {
+        "x-rapidapi-host": "livescore6.p.rapidapi.com",
+        "x-rapidapi-key": "0d665c4141msh8508c8be1432c2dp1968adjsne568471f7f06",
+      },
+    };
+
+    axios
+      .request(options)
+      .then(function (response) {
+        let matchData = String();
+        for (let element of response.data.Stages) {
+          element.Events = element.Events[0];
+          matchData = `${element.Events.Stg.Snm}\n${element.Events.Stg.Cnm}\n${element.Events?.EpsL}\n${element.Events?.ECo}`;
+          bot.telegram.sendMessage(data.from.id, matchData, {});
+        }
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  } else {
+    ctx.replyWithPhoto(
+      {
+        url: "http://indianmemetemplates.com/wp-content/uploads/Abhishek-Upmanyu-iska-answer-to-aata-hi-nahi-mujhe.jpg",
+      },
+      { caption: "Kindly ask something relevant" }
+    );
+  }
+});
+
+bot.hears("hi", (ctx) => ctx.reply("Hey there"));
+
+bot.hears(/bad||poor/, (ctx) => {
+  console.log(ctx.from);
+  ctx.replyWithPhoto(
+    {
+      url: "https://humornama.com/wp-content/uploads/2020/11/Gajab-Bejjati-Hai-Yaar-meme-template-of-Panchayat-series.jpg",
+    },
+    { caption: "Thanks for the feedback tho" }
+  );
 });
 
 bot.launch();
