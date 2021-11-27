@@ -26,6 +26,58 @@ bot.command("help", async (ctx) => {
   );
 });
 
+bot.command("news", async (ctx) => {
+  const data = ctx.update.message;
+  let url =
+    "https://newsapi.org/v2/everything?q=india&language=en&from=2021-10-26&sortBy=publishedAt&apiKey=2252dc0a9ae241cc9f8902c580e10270";
+  request(url, { json: true }, async (err, res, body) => {
+    if (err) {
+      return console.log(err);
+    }
+
+    const resultData = `${body.articles[0].title}\n\n${body.articles[0].description}`;
+    const resultURL = `${body.articles[0].url}`;
+
+    bot.telegram.sendMessage(data.from.id, resultData, {});
+
+    bot.telegram.sendMessage(data.from.id, resultURL, {});
+  });
+});
+
+bot.command("fact", async (ctx) => {
+  const data = ctx.update.message;
+  let text = data.text;
+  text = text.split(" ");
+  if (text[1] == "number") {
+    let url = `http://numbersapi.com/${text[2]}`;
+    request(url, { json: true }, async (err, res, body) => {
+      if (err) {
+        return console.log(err);
+      }
+
+      if (
+        body.includes("we're missing a fact") ||
+        body.includes("is a boring") ||
+        body.includes("is an uninteresting")
+      ) {
+        ctx.replyWithPhoto(
+          {
+            url: "https://i.imgflip.com/40noj6.jpg",
+          },
+          { caption: "I DON'T KNOW BRO" }
+        );
+        return 0;
+      }
+
+      bot.telegram.sendMessage(
+        data.from.id,
+        `A RANDOM FACT ABOUT YOUR NUMBER : ${body}`,
+        {}
+      );
+    });
+  }
+});
+
 bot.launch();
 
 //Idiomatic expression in express to route and respond to a client request
