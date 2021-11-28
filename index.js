@@ -1,8 +1,8 @@
 const express = require("express"); //Import the express dependency
 const request = require("request");
 const { Telegraf } = require("telegraf");
-const factful = require('factful.js');
-const axios = require('axios');
+const factful = require("factful.js");
+const axios = require("axios");
 
 const app = express(); //Instantiate an express app, the main work horse of this server
 const port = 5000; //Save the port number where your server will be listening
@@ -22,7 +22,7 @@ bot.command("start", (ctx) => {
 //command to get help
 bot.command("help", async (ctx) => {
   const data = ctx.update.message;
-  const commands = `/start - To start the bot\n/cricket <any argument? - To call various cricket methods like /cricket live\n/news - To get a latest news article\n/fact number x - To get a random fact about any number`;
+  const commands = `/start - To start the bot\n/cricket <any argument? - To call various cricket methods like 'cricket live'\n/news - To get a latest news article\n/fact number x - To get a random fact about any number\n/music <genre> - To get music recomendations\nAlso it can reply to your basic texts like hi, hello`;
   bot.telegram.sendMessage(
     data.from.id,
     `YOUR CUSTOM GREETING WAS : \n${commands}`,
@@ -48,12 +48,34 @@ bot.command("news", async (ctx) => {
   });
 });
 
+bot.command("music", async (ctx) => {
+  const data = ctx.update.message;
+  let text = data.text;
+  text = text.split(" ");
+  const musicTag = text[1];
+  let url = `http://musicovery.com/api/V6/playlist.php?&fct=getfromtag&tag=${musicTag}%20baroque&popularitymin=0&popularitymax=50`;
+  request(url, { json: true }, async (err, res, body) => {
+    if (err) {
+      return console.log(err);
+    }
+    bot.telegram.sendMessage(data.from.id, "Wait till i fetch the music for you!!", {});
+    if (body.tracks.length == 0) {
+      bot.telegram.sendMessage(data.from.id, "No music to recommend in this genre", {});      
+    }
+    let musicData = String();
+    for(let element of body.tracks.track) {
+      musicData += `-> ${element.title} - ${element.artist_display_name}\n\n`;
+    }
+    bot.telegram.sendMessage(data.from.id, musicData, {});
+  });
+});
+
 //command to get facts
 bot.command("fact", async (ctx) => {
   const data = ctx.update.message;
   let text = data.text;
   text = text.split(" ");
-  if(!text[1]) {
+  if (!text[1]) {
     let factData = factful.fact();
     factData = factData.all;
     bot.telegram.sendMessage(data.from.id, factData, {});
@@ -157,9 +179,30 @@ bot.command("cricket", async (ctx) => {
 });
 
 bot.hears("hi", (ctx) => ctx.reply("Hey there"));
+bot.hears([/not so good/, /unwell/, /not fine/], (ctx) => ctx.reply("I am sorry to hear that!!"));
 bot.hears(/how are you/, (ctx) => ctx.reply("I am good, wbu?"));
+bot.hears([/what are you doing/, /what's up/], (ctx) => ctx.reply("Nothing much,just waiting for your command"));
+bot.hears([/who are you/, /what's your name/, /what is your name/], (ctx) => ctx.reply("I am a telegram bot and my name is AstroBot"));
 
-bot.hears(/bad/||/lame/, (ctx) => {
+bot.hears([/bye/, /see you/], (ctx) => {
+  ctx.replyWithPhoto(
+    {
+      url: "https://indianmemetemplates.com/wp-content/uploads/2019/03/tussi-jaa-rahe-ho-tussi-naa-jao.jpg",
+    },
+    { caption: "Alexa please play 'Let me down slowly'" }
+  );
+});
+
+bot.hears([/dance for me/, /sing for me/, /do something for me/, /tell me a joke/], (ctx) => {
+  ctx.replyWithPhoto(
+    {
+      url: "https://indianmemetemplates.com/wp-content/uploads/mai-tumhara-baap-ka-naukar-nahi-hu.jpg",
+    },
+    { caption: "LOL!! Sorry i can't do these kind of things" }
+  );
+});
+
+bot.hears([/bad/, /lame/], (ctx) => {
   ctx.replyWithPhoto(
     {
       url: "https://humornama.com/wp-content/uploads/2020/11/Gajab-Bejjati-Hai-Yaar-meme-template-of-Panchayat-series.jpg",
@@ -175,7 +218,7 @@ bot.hears(/meme template/, (ctx) => {
       return console.log(err);
     }
     const randomNumber = Math.floor(Math.random());
-    const meme = body.data.memes[randomNumber%80]
+    const meme = body.data.memes[randomNumber % 80];
     ctx.replyWithPhoto(
       {
         url: meme.url,
