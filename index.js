@@ -33,13 +33,13 @@ bot.command("help", async (ctx) => {
 //command to get news
 bot.command("news", async (ctx) => {
   const data = ctx.update.message;
+  const date = new Date().toISOString().slice(0, 10);
   let url =
-    "https://newsapi.org/v2/everything?q=india&language=en&from=2021-10-26&sortBy=publishedAt&apiKey=2252dc0a9ae241cc9f8902c580e10270";
+    `https://newsapi.org/v2/everything?q=india&language=en&from=${date}&sortBy=publishedAt&apiKey=2252dc0a9ae241cc9f8902c580e10270`;
   request(url, { json: true }, async (err, res, body) => {
     if (err) {
       return console.log(err);
     }
-
     const resultData = `${body.articles[0].title}\n\n${body.articles[0].description}`;
     const resultURL = `${body.articles[0].url}`;
 
@@ -59,8 +59,9 @@ bot.command("music", async (ctx) => {
       return console.log(err);
     }
     bot.telegram.sendMessage(data.from.id, "Wait till i fetch the music for you!!", {});
-    if (body.tracks.length == 0) {
-      bot.telegram.sendMessage(data.from.id, "No music to recommend in this genre", {});      
+    if (body.tracks.track == undefined) {
+      bot.telegram.sendMessage(data.from.id, "No music to recommend in this genre", {});
+      return 0; 
     }
     let musicData = String();
     for(let element of body.tracks.track) {
