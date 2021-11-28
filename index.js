@@ -4,11 +4,13 @@ const { Telegraf } = require("telegraf");
 const factful = require("factful.js");
 const axios = require("axios");
 
+require('dotenv').config();
+
 const app = express(); //Instantiate an express app, the main work horse of this server
 const port = 5000; //Save the port number where your server will be listening
 
-//const bot = new Telegraf("2128386396:AAGhQpUUecd9D54Z3zd3UlqkM_jeB1WTAK4");
-const bot = new Telegraf("2121704253:AAEXm7sz_JrRd-3kJ-oQSI6L49g_t7jnMmU");
+const botToken = process.env.BOT_TOKEN
+const bot = new Telegraf(botToken);
 
 //command start the bot
 bot.command("start", (ctx) => {
@@ -34,40 +36,17 @@ bot.command("help", async (ctx) => {
 bot.command("news", async (ctx) => {
   const data = ctx.update.message;
   const date = new Date().toISOString().slice(0, 10);
-  let url =
-    `https://newsapi.org/v2/everything?q=india&language=en&from=${date}&sortBy=publishedAt&apiKey=2252dc0a9ae241cc9f8902c580e10270`;
+  let url = `https://newsapi.org/v2/everything?q=india&language=en&from=${date}&sortBy=publishedAt&apiKey=2252dc0a9ae241cc9f8902c580e10270`;
   request(url, { json: true }, async (err, res, body) => {
     if (err) {
       return console.log(err);
     }
-    const resultData = `${body.articles[0].title}\n\n${body.articles[0].description}`;
-    const resultURL = `${body.articles[0].url}`;
+    const randomNumber = Math.floor(Math.random() * 100) % (body.articles.length-1);
+    const resultData = `${body.articles[randomNumber].title}\n\n${body.articles[randomNumber].description}`;
+    const resultURL = `${body.articles[randomNumber].url}`;
 
     bot.telegram.sendMessage(data.from.id, resultData, {});
     bot.telegram.sendMessage(data.from.id, resultURL, {});
-  });
-});
-
-bot.command("music", async (ctx) => {
-  const data = ctx.update.message;
-  let text = data.text;
-  text = text.split(" ");
-  const musicTag = text[1];
-  let url = `http://musicovery.com/api/V6/playlist.php?&fct=getfromtag&tag=${musicTag}%20baroque&popularitymin=0&popularitymax=50`;
-  request(url, { json: true }, async (err, res, body) => {
-    if (err) {
-      return console.log(err);
-    }
-    bot.telegram.sendMessage(data.from.id, "Wait till i fetch the music for you!!", {});
-    if (body.tracks.track == undefined) {
-      bot.telegram.sendMessage(data.from.id, "No music to recommend in this genre", {});
-      return 0; 
-    }
-    let musicData = String();
-    for(let element of body.tracks.track) {
-      musicData += `-> ${element.title} - ${element.artist_display_name}\n\n`;
-    }
-    bot.telegram.sendMessage(data.from.id, musicData, {});
   });
 });
 
@@ -180,10 +159,16 @@ bot.command("cricket", async (ctx) => {
 });
 
 bot.hears("hi", (ctx) => ctx.reply("Hey there"));
-bot.hears([/not so good/, /unwell/, /not fine/], (ctx) => ctx.reply("I am sorry to hear that!!"));
+bot.hears([/not so good/, /unwell/, /not fine/], (ctx) =>
+  ctx.reply("I am sorry to hear that!!")
+);
 bot.hears(/how are you/, (ctx) => ctx.reply("I am good, wbu?"));
-bot.hears([/what are you doing/, /what's up/], (ctx) => ctx.reply("Nothing much,just waiting for your command"));
-bot.hears([/who are you/, /what's your name/, /what is your name/], (ctx) => ctx.reply("I am a telegram bot and my name is AstroBot"));
+bot.hears([/what are you doing/, /what's up/], (ctx) =>
+  ctx.reply("Nothing much,just waiting for your command")
+);
+bot.hears([/who are you/, /what's your name/, /what is your name/], (ctx) =>
+  ctx.reply("I am a telegram bot and my name is AstroBot")
+);
 
 bot.hears([/bye/, /see you/], (ctx) => {
   ctx.replyWithPhoto(
@@ -194,14 +179,17 @@ bot.hears([/bye/, /see you/], (ctx) => {
   );
 });
 
-bot.hears([/dance for me/, /sing for me/, /do something for me/, /tell me a joke/], (ctx) => {
-  ctx.replyWithPhoto(
-    {
-      url: "https://indianmemetemplates.com/wp-content/uploads/mai-tumhara-baap-ka-naukar-nahi-hu.jpg",
-    },
-    { caption: "LOL!! Sorry i can't do these kind of things" }
-  );
-});
+bot.hears(
+  [/dance for me/, /sing for me/, /do something for me/, /tell me a joke/],
+  (ctx) => {
+    ctx.replyWithPhoto(
+      {
+        url: "https://indianmemetemplates.com/wp-content/uploads/mai-tumhara-baap-ka-naukar-nahi-hu.jpg",
+      },
+      { caption: "LOL!! Sorry i can't do these kind of things" }
+    );
+  }
+);
 
 bot.hears([/bad/, /lame/], (ctx) => {
   ctx.replyWithPhoto(
@@ -218,7 +206,7 @@ bot.hears(/meme template/, (ctx) => {
     if (err) {
       return console.log(err);
     }
-    const randomNumber = Math.floor(Math.random());
+    const randomNumber = Math.floor(Math.random() * 100);
     const meme = body.data.memes[randomNumber % 80];
     ctx.replyWithPhoto(
       {
