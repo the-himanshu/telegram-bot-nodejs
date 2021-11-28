@@ -13,6 +13,7 @@
   "author": "Himanshu Malik",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.24.0",
     "express": "^4.17.1",
     "factful.js": "^1.2.8",
     "request": "^2.88.2",

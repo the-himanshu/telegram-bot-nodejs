@@ -1,7 +1,8 @@
 const express = require("express"); //Import the express dependency
 const request = require("request");
 const { Telegraf } = require("telegraf");
-const factful = require('factful.js')
+const factful = require('factful.js');
+const axios = require('axios');
 
 const app = express(); //Instantiate an express app, the main work horse of this server
 const port = 5000; //Save the port number where your server will be listening
