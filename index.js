@@ -50,6 +50,38 @@ bot.command("news", async (ctx) => {
   });
 });
 
+bot.command("music", async (ctx) => {
+  const data = ctx.update.message;
+  let text = data.text;
+  text = text.split(" ");
+  if(text[2]) {
+    text[1] = text[1]+text[2];
+  }
+  bot.telegram.sendMessage(data.from.id, "FETCHING SOME MUSIC AS PER YOUR REQUEST....", {});
+  const accessToken = process.env.GENIUS_API_ACCESS_TOKEN;
+  let url = `https://api.genius.com/search?q=${text[1]}&access_token=${accessToken}`;
+  request(url, { json: true }, async (err, res, body) => {
+    if (err) {
+      return console.log(err);
+    }
+    let songData = String();
+    if(body.response.hits.length == 0) {
+      bot.telegram.sendMessage(data.from.id, "SORRY WE COULD NOT FIND ANY GOOD MUSIC AS PER YOUR QUERY", {});
+    }
+    for(let element of body.response.hits) {
+      songData = `${element.result.title} BY ${element.result.artists_names}\nREAD LYRICS HERE : ${element.result.url}`;
+      ctx.replyWithPhoto(
+        {
+          url: element.result.header_image_url
+        },
+        { caption: songData }
+      );
+    }
+    //bot.telegram.sendMessage(data.from.id, resultData, {});
+    //bot.telegram.sendMessage(data.from.id, resultURL, {});
+  });
+});
+
 //command to get facts
 bot.command("fact", async (ctx) => {
   const data = ctx.update.message;
@@ -97,8 +129,9 @@ bot.command("cricket", async (ctx) => {
   text = text.split(" ");
 
   if (text[1] == "rankings") {
+    const accessToken = process.env.SPORTMONKS_API_TOKEN;
     let url =
-      "https://cricket.sportmonks.com/api/v2.0/team-rankings?api_token=YHOUIAmP7LRABmIjYn9MX4PrF1YTkZbnS3z2otMuxQ4n4mzfMw3X0KgHuTMs";
+      `https://cricket.sportmonks.com/api/v2.0/team-rankings?api_token=${accessToken}`;
     request(url, { json: true }, async (err, res, body) => {
       if (err) {
         return console.log(err);
@@ -125,13 +158,14 @@ bot.command("cricket", async (ctx) => {
       });
     });
   } else if (text[1] == "live" || text[1] == "livescore") {
+    const accessToken = process.env.LIVESCORE_API_TOKEN;
     var options = {
       method: "GET",
       url: "https://livescore6.p.rapidapi.com/matches/v2/list-live",
       params: { Category: "cricket" },
       headers: {
         "x-rapidapi-host": "livescore6.p.rapidapi.com",
-        "x-rapidapi-key": "0d665c4141msh8508c8be1432c2dp1968adjsne568471f7f06",
+        "x-rapidapi-key": accessToken,
       },
     };
 
