@@ -26,7 +26,7 @@ bot.command("start", (ctx) => {
 //command to get help
 bot.command("help", async (ctx) => {
   const data = ctx.update.message;
-  const commands = `/start - To start the bot\n/cricket <any argument> - To call various cricket methods like 'cricket live'\n/news - To get a latest news article\n/fact number x - To get a random fact about any number\n/music <artist name/genre> - To get music recomendations\n\fact - to get a raondom fact\n\nAlso it can reply to your basic texts like hi, hello, how are you, send me a meme template\nRest you can try to explore`;
+  const commands = `/start - To start the bot\n/cricket <any argument> - To call various cricket methods like 'cricket live'\n/news - To get a latest news article\n/fact number x - To get a random fact about any number\n/music <artist name/genre> - To get music recomendations\n/fact - to get a raondom fact\n\nAlso it can reply to your basic texts like hi, hello, how are you, send me a meme template\nRest you can try to explore`;
   bot.telegram.sendMessage(
     data.from.id,
     `YOUR CUSTOM GREETING WAS : \n${commands}`,
