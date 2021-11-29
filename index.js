@@ -14,17 +14,19 @@ const bot = new Telegraf(botToken);
 
 //command start the bot
 bot.command("start", (ctx) => {
-  bot.telegram.sendMessage(
-    ctx.chat.id,
-    `Hello there! Welcome to my new telegram bot\nType /help to check commands`,
-    {}
+  bot.telegram.sendMessage(ctx.update.message.from.id, "PROCESSING THE BOT....", {});
+  ctx.replyWithPhoto(
+    {
+      url: "https://www.scrolldroll.com/wp-content/uploads/2020/08/Swagat-ai-aapka-deviyo-aur-sajjano-KBC-memes.jpeg",
+    },
+    { caption: "Hello there! Welcome to my new telegram bot\nType /help to check commands" }
   );
 });
 
 //command to get help
 bot.command("help", async (ctx) => {
   const data = ctx.update.message;
-  const commands = `/start - To start the bot\n/cricket <any argument? - To call various cricket methods like 'cricket live'\n/news - To get a latest news article\n/fact number x - To get a random fact about any number\n/music <genre> - To get music recomendations\nAlso it can reply to your basic texts like hi, hello`;
+  const commands = `/start - To start the bot\n/cricket <any argument> - To call various cricket methods like 'cricket live'\n/news - To get a latest news article\n/fact number x - To get a random fact about any number\n/music <artist name/genre> - To get music recomendations\n\fact - to get a raondom fact\n\nAlso it can reply to your basic texts like hi, hello, how are you, send me a meme template\nRest you can try to explore`;
   bot.telegram.sendMessage(
     data.from.id,
     `YOUR CUSTOM GREETING WAS : \n${commands}`,
@@ -36,7 +38,8 @@ bot.command("help", async (ctx) => {
 bot.command("news", async (ctx) => {
   const data = ctx.update.message;
   const date = new Date().toISOString().slice(0, 10);
-  let url = `https://newsapi.org/v2/everything?q=india&language=en&from=${date}&sortBy=publishedAt&apiKey=2252dc0a9ae241cc9f8902c580e10270`;
+  const accessToken = process.env.NEWS_API_ACCESS_TOKEN;
+  let url = `https://newsapi.org/v2/everything?q=india&language=en&from=${date}&sortBy=publishedAt&apiKey=${accessToken}`;
   request(url, { json: true }, async (err, res, body) => {
     if (err) {
       return console.log(err);
@@ -68,17 +71,19 @@ bot.command("music", async (ctx) => {
     if(body.response.hits.length == 0) {
       bot.telegram.sendMessage(data.from.id, "SORRY WE COULD NOT FIND ANY GOOD MUSIC AS PER YOUR QUERY", {});
     }
+    let randomNumber = 0;
     for(let element of body.response.hits) {
       songData = `${element.result.title} BY ${element.result.artists_names}\nREAD LYRICS HERE : ${element.result.url}`;
-      ctx.replyWithPhoto(
-        {
-          url: element.result.header_image_url
-        },
-        { caption: songData }
-      );
+      randomNumber = Math.floor(Math.random() * 100);
+      if(randomNumber % 2 == 0) {
+        ctx.replyWithPhoto(
+          {
+            url: element.result.header_image_url
+          },
+          { caption: songData }
+        );
+      }
     }
-    //bot.telegram.sendMessage(data.from.id, resultData, {});
-    //bot.telegram.sendMessage(data.from.id, resultURL, {});
   });
 });
 
@@ -192,16 +197,25 @@ bot.command("cricket", async (ctx) => {
   }
 });
 
-bot.hears("hi", (ctx) => ctx.reply("Hey there"));
+bot.hears([/hi/, /hey/, /hola/], (ctx) => ctx.reply("Hey there"));
 bot.hears([/not so good/, /unwell/, /not fine/], (ctx) =>
   ctx.reply("I am sorry to hear that!!")
 );
 bot.hears(/how are you/, (ctx) => ctx.reply("I am good, wbu?"));
+bot.hears([/am i cute/, /do i look good/, /how do i look/, /am i smart/], (ctx) =>
+  ctx.reply("Do you want me to lie?")
+);
 bot.hears([/what are you doing/, /what's up/], (ctx) =>
   ctx.reply("Nothing much,just waiting for your command")
 );
 bot.hears([/who are you/, /what's your name/, /what is your name/], (ctx) =>
   ctx.reply("I am a telegram bot and my name is AstroBot")
+);
+bot.hears([/can you do everything/, /are you god/], (ctx) =>
+  ctx.reply("I am a human not some god.\nWAIT NO!! I am not even a human")
+);
+bot.hears([/do you love me/, /do you care for me/], (ctx) =>
+  ctx.reply("Ofcourse i do *STARES AT YOU*")
 );
 
 bot.hears([/bye/, /see you/], (ctx) => {
@@ -214,7 +228,7 @@ bot.hears([/bye/, /see you/], (ctx) => {
 });
 
 bot.hears(
-  [/dance for me/, /sing for me/, /do something for me/, /tell me a joke/],
+  [/dance for me/, /sing for me/, /do something for me/, /tell me a joke/, /find me a/, /do me a/, /can you/],
   (ctx) => {
     ctx.replyWithPhoto(
       {
